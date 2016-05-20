@@ -3,6 +3,7 @@ from PIL import Image
 import caffe
 import os
 from sklearn.cluster import KMeans
+from sklearn import metrics
 import time
 from copy import deepcopy
 import lmdb
@@ -85,7 +86,7 @@ def get_label_names(names_file):
 
 #Save images in folders corresponding to their cluster
 #Images are saved in format <CNN prediction>_<sample number>.png
-def save_clustered(cluster_labels, images, predictions, label_names, num_clusters, num_samples, mode):
+def save_clustered(cluster_labels, ground_truth, images, predictions, label_names, num_clusters, num_samples, mode):
   timestmp=time.strftime('%c')
   os.mkdir(mode+'_Results_'+timestmp)
   os.chdir(mode+'_Results_'+timestmp)
@@ -98,6 +99,15 @@ def save_clustered(cluster_labels, images, predictions, label_names, num_cluster
     im.save(str(label_names[predictions[x]])+'_'+str(count)+'.png')
     count+=1
     os.chdir('..')
+  ARI_clust = metrics.adjusted_rand_score(ground_truth, cluster_labels)
+  ARI_cnn = metrics.adjusted_rand_score(ground_truth, predictions)
+  homogeneity = metrics.homogeneity_score(ground_truth, cluster_labels)
+  completeness = metrics.completeness_score(ground_truth, cluster_labels)
+  fil = open('metrics.txt', 'w')
+  fil.write('Adjusted Rand Index Score of ' + mode + ': ' + str(ARI_clust))
+  fil.write('\nAdjusted Rand Index Score of CNN: ' + str(ARI_cnn))
+  fil.write('\nHomogeneity Score of ' + mode + ': ' + str(homogeneity))
+  fil.write('\nCompleteness Score of ' + mode + ': ' + str(completeness))
 
 
 

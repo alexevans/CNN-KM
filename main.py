@@ -17,4 +17,4 @@ if __name__=='__main__':
   disp_ims = cnnkm.get_disp_images(in_ims)
   preds, feats = cnnkm.get_predictions(in_ims, net_definition, trained_weights, mean_file, feat_layer, num_samples)
   clustered = cnnkm.get_clusters(feats, num_clusters, mode)
-  cnnkm.save_clustered(clustered, disp_ims, preds, label_names, num_clusters, num_samples, mode)
+  cnnkm.save_clustered(clustered, gt, disp_ims, preds, label_names, num_clusters, num_samples, mode)
