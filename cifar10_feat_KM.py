@@ -5,16 +5,8 @@ import os
 from sklearn.cluster import KMeans
 import time
 from copy import deepcopy
+import lmdb
 
-num_samples = 10000
-miter = 800
-num_clusters = 10
-images_dir = '/home/alex/git/caffe/examples/cifar10/cifar10_images'
-net_definition = 'cifar10_full.prototxt'
-trained_weights = 'trained_full/cifar10_full_iter_70000.caffemodel'
-mean_file = 'mean.binaryproto'
-names_file = 'batches.meta.txt'
-feat_layer = 'ip1'
 
 #get image samples
 def get_image_arr():
@@ -25,7 +17,29 @@ def get_image_arr():
     count+=1
     if(count>=num_samples):
       break
-  return numpy.array(images)
+  return numpy.array(images), 
+
+#get image samples from lmdb 
+#also returns labels for each image, useful for metrics
+def get_image_arr_lmdb(images_lmdb, num_samples):
+  ims=[]
+  labels=[]
+  crs = lmdb.open(images_lmdb).begin().cursor()
+  caffe_dat = caffe.proto.caffe_pb2.Datum()
+  count=0
+  for k, v in crs:
+    caffe_dat.ParseFromString(v)
+    labels.append(caffe_dat.label)
+    #need to change the image to 32,32,3 shape for display
+    roll_img = numpy.rollaxis(caffe.io.datum_to_array(caffe_dat), 0, 3)
+    ims.append(roll_img)
+    count+=1
+    if(count>=num_samples):
+      break
+  ims1=numpy.array(ims, numpy.float32)
+  ims1/=255
+  return ims1, numpy.array(labels)
+
 
 #convert image samples to displayable uint8 format
 def get_disp_images(img_arr):
@@ -43,7 +57,7 @@ def mean_as_numpy(meanfile):
   return np_mean[0]
 
 #gets predictions and features for all samples
-def get_predictions(input_images):
+def get_predictions(input_images, net_definition, trained_weights, mean_file, feat_layer, num_samples):
   cnn = caffe.Classifier(net_definition, trained_weights, image_dims=(32,32), mean=mean_as_numpy(mean_file), raw_scale=255, channel_swap=(2,1,0))
   predictions=[]
   features=[]
@@ -54,12 +68,15 @@ def get_predictions(input_images):
   return numpy.array(predictions), numpy.array(features)
 
 #get clusters of feature array
-def get_clusters(feat_arr):
-  kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(feat_arr)
-  return kmeans.labels_
+def get_clusters(feat_arr, num_clusters, mode):
+  if (mode=='kmeans'):
+  	kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(feat_arr)
+  	return kmeans.labels_
+  else:
+    pass
 
 #returns label names of the label numbers from batches.meta file
-def get_label_names():
+def get_label_names(names_file):
   names=[]
   fil = open(names_file, 'r')
   for lin in fil.readlines():
@@ -68,10 +85,10 @@ def get_label_names():
 
 #Save images in folders corresponding to their cluster
 #Images are saved in format <CNN prediction>_<sample number>.png
-def save_clustered(cluster_labels, images, predictions, label_names):
+def save_clustered(cluster_labels, images, predictions, label_names, num_clusters, num_samples, mode):
   timestmp=time.strftime('%c')
-  os.mkdir('Cluster_Results_'+timestmp)
-  os.chdir('Cluster_Results_'+timestmp)
+  os.mkdir(mode+'_Results_'+timestmp)
+  os.chdir(mode+'_Results_'+timestmp)
   for x in range(0,num_clusters):
     os.mkdir(str(x))
   count=0
