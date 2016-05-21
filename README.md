@@ -1,5 +1,5 @@
 # CNN-KM
-Convolutional Neural Network for feature extraction and K-means for clustering.
+Convolutional Neural Network for feature extraction with unsupervised feature clustering.
 Using the <a href="https://www.cs.toronto.edu/~kriz/cifar.html" target="_blank">Cifar-10 dataset</a> on <a href="https://github.com/BVLC/caffe/" target="_blank">Caffe</a>.
 
 ## How to Use

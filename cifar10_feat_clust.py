@@ -3,6 +3,8 @@ from PIL import Image
 import caffe
 import os
 from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import Birch
 from sklearn import metrics
 import time
 from copy import deepcopy
@@ -71,8 +73,14 @@ def get_predictions(input_images, net_definition, trained_weights, mean_file, fe
 #get clusters of feature array
 def get_clusters(feat_arr, num_clusters, mode):
   if (mode=='kmeans'):
-  	kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(feat_arr)
-  	return kmeans.labels_
+    kmeans = KMeans(n_clusters=num_clusters).fit(feat_arr)
+    return kmeans.labels_
+  elif (mode=='agglomerative'):
+    agg = AgglomerativeClustering(n_clusters=num_clusters).fit(feat_arr)
+    return agg.labels_
+  elif (mode=='birch'):
+    birch = Birch(n_clusters=num_clusters).fit(feat_arr)
+    return birch.labels_
   else:
     pass
 
@@ -93,6 +101,8 @@ def save_clustered(cluster_labels, ground_truth, images, predictions, label_name
   for x in range(0,num_clusters):
     os.mkdir(str(x))
   count=0
+  if (mode=='dbscan'):
+    os.mkdir('noisy')
   for x in range(0,num_samples):
     os.chdir(str(cluster_labels[x]))
     im = Image.fromarray(images[x])
