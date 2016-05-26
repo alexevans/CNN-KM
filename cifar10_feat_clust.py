@@ -5,10 +5,12 @@ import os
 from sklearn.cluster import KMeans
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import Birch
+from sklearn.decomposition import PCA
 from sklearn import metrics
 import time
 from copy import deepcopy
 import lmdb
+import matplotlib.pyplot as pyplot
 
 
 #get image samples
@@ -94,7 +96,7 @@ def get_label_names(names_file):
 
 #Save images in folders corresponding to their cluster
 #Images are saved in format <CNN prediction>_<sample number>.png
-def save_clustered(cluster_labels, ground_truth, images, predictions, label_names, num_clusters, num_samples, mode):
+def save_clustered(cluster_labels, ground_truth, images, feats, predictions, label_names, num_clusters, num_samples, mode):
   timestmp=time.strftime('%c')
   os.mkdir(mode+'_Results_'+timestmp)
   os.chdir(mode+'_Results_'+timestmp)
@@ -111,13 +113,21 @@ def save_clustered(cluster_labels, ground_truth, images, predictions, label_name
     os.chdir('..')
   ARI_clust = metrics.adjusted_rand_score(ground_truth, cluster_labels)
   ARI_cnn = metrics.adjusted_rand_score(ground_truth, predictions)
-  homogeneity = metrics.homogeneity_score(ground_truth, cluster_labels)
-  completeness = metrics.completeness_score(ground_truth, cluster_labels)
+  AMI_clust = metrics.adjusted_mutual_info_score(ground_truth, cluster_labels)
+  AMI_cnn = metrics.adjusted_mutual_info_score(ground_truth, predictions)
+  homogeneity_clust = metrics.homogeneity_score(ground_truth, cluster_labels)
+  completeness_clust = metrics.completeness_score(ground_truth, cluster_labels)
+  vscore_clust = metrics.v_measure_score(ground_truth, cluster_labels)
+  sil_score_clust = metrics.silhouette_score(feats, cluster_labels)
   fil = open('metrics.txt', 'w')
   fil.write('Adjusted Rand Index Score of ' + mode + ': ' + str(ARI_clust))
   fil.write('\nAdjusted Rand Index Score of CNN: ' + str(ARI_cnn))
-  fil.write('\nHomogeneity Score of ' + mode + ': ' + str(homogeneity))
-  fil.write('\nCompleteness Score of ' + mode + ': ' + str(completeness))
-
+  fil.write('\nAdjusted Mutual Information Score of ' + mode + ': ' + str(AMI_clust))
+  fil.write('\nAdjusted Mutual Information Score of CNN: ' + str(AMI_cnn))
+  fil.write('\nHomogeneity Score of ' + mode + ': ' + str(homogeneity_clust))
+  fil.write('\nCompleteness Score of ' + mode + ': ' + str(completeness_clust))
+  fil.write('\nV Score of ' + mode + ': ' + str(vscore_clust))
+  fil.write('\nSilhouette Score of ' + mode + ': ' + str(sil_score_clust))
+  os.chdir('..')
 
 
