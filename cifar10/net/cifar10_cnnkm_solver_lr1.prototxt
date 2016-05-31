@@ -21,7 +21,7 @@ display: 200
 max_iter: 65000
 # snapshot intermediate results
 snapshot: 5000
-snapshot_format: HDF5
+#snapshot_format: HDF5
 snapshot_prefix: "cifar10_cnnkm"
 # solver mode: CPU or GPU
-solver_mode: GPU
+solver_mode: CPU
