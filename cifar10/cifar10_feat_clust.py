@@ -68,7 +68,7 @@ def get_predictions(input_images, net_definition, trained_weights, mean_file, fe
   features=[]
   for x in range(0, num_samples):
     predictions.append(numpy.argmax(cnn.predict([input_images[x]])))
-    out = cnn.forward()
+    #out = cnn.forward()
     features.append((cnn.blobs[feat_layer].data).flatten())
   return numpy.array(predictions), numpy.array(features)
 
@@ -95,7 +95,7 @@ def get_label_names(names_file):
   return names
 
 #Save images in folders corresponding to their cluster
-#Images are saved in format <CNN prediction>_<sample number>.png
+#Images are saved in format <Ground Truth Label>_<CNN prediction>_<sample number>.png
 def save_clustered(cluster_labels, ground_truth, images, feats, predictions, label_names, num_clusters, num_samples, mode):
   timestmp=time.strftime('%c')
   os.mkdir(mode+'_Results_'+timestmp)
@@ -108,7 +108,7 @@ def save_clustered(cluster_labels, ground_truth, images, feats, predictions, lab
   for x in range(0,num_samples):
     os.chdir(str(cluster_labels[x]))
     im = Image.fromarray(images[x])
-    im.save(str(label_names[predictions[x]])+'_'+str(count)+'.png')
+    im.save(str(label_names[ground_truth[x]]+'_'+label_names[predictions[x]])+'_'+str(count)+'.png')
     count+=1
     os.chdir('..')
   ARI_clust = metrics.adjusted_rand_score(ground_truth, cluster_labels)
